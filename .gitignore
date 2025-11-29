@@ -2,4 +2,3 @@
 .venv
 .env
 __pycache__
-Models/* # ignore changes to all files in Models directory
