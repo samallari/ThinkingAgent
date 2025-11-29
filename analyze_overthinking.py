@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
@@ -240,7 +241,7 @@ def find_responses_files(base_path):
             issue = path_parts[-1]  # Last directory is the issue
             
             # Only process if it's one of our selected issues
-            if issue in selected_ids:
+            if issue in selected_ids[:100]:  # Limit to first 100 for testing
                 try:
                     # Extract model name using outputs as reference
                     model_idx = path_parts.index('Models') + 1  # Model name is 1 after 'Models'
@@ -274,26 +275,29 @@ def load_existing_results(file_path):
     return existing_results
 
 
-def analyze_responses(base_path, iteration_number=None):
+def analyze_responses(base_path, iteration_number=None, output_prefix=None):
     """
     Analyze responses and save results. Can handle both iteration and non-iteration modes.
-    
+
     Args:
         base_path: Base directory path to search for response files
         iteration_number: If provided, runs in iteration mode with specific numbering
+        output_prefix: Custom prefix for output files (e.g., 'o1_high_overthinking')
     """
     # Load LLM configuration and initialize LLM
     config = load_config()
     llm = LLM(config)
 
     # Determine output files based on mode
-    output_file = (f'analysis_results_overthinking_iteration{iteration_number}.jsonl' 
-                  if iteration_number is not None 
-                  else 'analysis_results.jsonl')
-    
-    interpretation_file = (f'overthinking_interpretations_iteration{iteration_number}.txt'
-                         if iteration_number is not None
-                         else 'overthinking_interpretations.txt')
+    if output_prefix:
+        output_file = f'{output_prefix}.jsonl'
+        interpretation_file = f'{output_prefix}_interpretations.txt'
+    elif iteration_number is not None:
+        output_file = f'analysis_results_overthinking_iteration{iteration_number}.jsonl'
+        interpretation_file = f'overthinking_interpretations_iteration{iteration_number}.txt'
+    else:
+        output_file = 'analysis_results.jsonl'
+        interpretation_file = 'overthinking_interpretations.txt'
 
     # Load existing results
     existing_results = load_existing_results(output_file)
@@ -348,15 +352,24 @@ def analyze_responses(base_path, iteration_number=None):
 
 if __name__ == '__main__':
     import argparse
-    
+
     parser = argparse.ArgumentParser(description='Analyze overthinking in model responses')
-    parser.add_argument('--iterations-mode', action='store_true', 
-                       help='Enable iterations mode to analyze multiple iterations')
+    parser.add_argument('--iterations-mode', action='store_true',
+                        help='Enable iterations mode to analyze multiple iterations')
+    parser.add_argument('--model-dir', type=str,
+                       help='Specific model directory to analyze (e.g., Models/o1_high_maxiter_30_N_v0.20.0-no-hint-run_1)')
+    parser.add_argument('--output', type=str,
+                       help='Output file prefix (e.g., o1_high_overthinking)')
     args = parser.parse_args()
 
-    if args.iterations_mode:
+    if args.model_dir and args.output:
+        # Single model directory mode with custom output
+        print(f"Analyzing model directory: {args.model_dir}")
+        print(f"Output prefix: {args.output}")
+        analyze_responses(args.model_dir, output_prefix=args.output)
+    elif args.iterations_mode:
         base_path_template = 'Models/best_of_n_o1/iteration_{}'
-        
+
         # Process iterations 1 through 4
         for iteration in range(1, 5):
             current_base_path = base_path_template.format(iteration)

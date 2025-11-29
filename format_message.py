@@ -405,6 +405,17 @@ def process_model_variants(root_directory, issue_id=None):
                 print(f'Could not find folder for issue: {issue_id}')
                 return
 
+        # Check if llm_completions exists at root level (direct model directory)
+        direct_llm_path = os.path.join(root_directory, 'llm_completions')
+        if os.path.exists(direct_llm_path):
+            print(f'Found llm_completions at root level')
+            error_dict = load_error_messages(root_directory)
+            for root, dirs, files in os.walk(direct_llm_path):
+                issue_id = get_issue_id_from_path(root)
+                if issue_id in SELECTED_IDS:
+                    process_files_with_observations(root, error_dict)
+            return
+
         # Otherwise, look for model variants and llm_completions
         model_variants = [
             d for d in os.listdir(root_directory)

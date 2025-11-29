@@ -1,5 +1,6 @@
 [llm]
-model = "claude-3-5-sonnet-20241022"
+#model = "claude-3-5-sonnet-20241022"
+model = "claude-3-5-haiku-20241022"
 api_key = ""  # Will be overridden by environment variables
 temperature = 0.0
 max_output_tokens = 4096
