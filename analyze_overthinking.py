@@ -241,7 +241,7 @@ def find_responses_files(base_path):
             issue = path_parts[-1]  # Last directory is the issue
             
             # Only process if it's one of our selected issues
-            if issue in selected_ids[:100]:  # Limit to first 100 for testing
+            if issue in selected_ids:
                 try:
                     # Extract model name using outputs as reference
                     model_idx = path_parts.index('Models') + 1  # Model name is 1 after 'Models'
@@ -344,10 +344,17 @@ def analyze_responses(base_path, iteration_number=None, output_prefix=None):
                         save_jsonl([analysis_json], output_file)
                         with open(interpretation_file, 'a') as f:
                             f.write(interpretation_text + '\n\n')
+                        # Wait between requests to avoid rate limits
+                        # time.sleep(30)
                     except Exception as e:
                         print(f'Error saving results: {e}')
+                # else:
+                #     # Still wait even if analysis failed to avoid hammering API
+                #     time.sleep(30)
             except Exception as e:
                 print(f'Task failed: {e}')
+                # Also wait on failures to avoid hammering the API
+                # time.sleep(30)
 
 
 if __name__ == '__main__':
