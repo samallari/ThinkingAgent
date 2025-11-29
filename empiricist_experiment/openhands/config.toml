@@ -1,0 +1,28 @@
+[core]
+workspace_base = "./workspace"
+max_iterations = 30
+
+[sandbox]
+# specialized config to prevent x86 emulation crashes on macOS
+environment = { "MAMBA_EXTRACT_THREADS" = "1", "QEMU_GUEST_MEM_LIMIT_OVERRIDE" = "1" }
+# use_host_network = true
+
+# --- Low Reasoning (Standard Flash) ---
+[llm.eval_gemini_low]
+model = "gemini/gemini-2.5-flash"
+api_key = ""  # Set via GEMINI_API_KEY env variable
+reasoning_effort = "low"
+num_retries = 8
+retry_multiplier = 2
+retry_min_wait = 15
+retry_max_wait = 120
+
+# --- High Reasoning (Flash Thinking) ---
+[llm.eval_gemini_high]
+model = "gemini/gemini-2.5-flash"
+api_key = ""  # Set via GEMINI_API_KEY env variable
+reasoning_effort = "high"
+num_retries = 8
+retry_multiplier = 2
+retry_min_wait = 15
+retry_max_wait = 120
